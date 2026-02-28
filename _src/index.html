@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TCGA Analysis Reports</title>
+  <title>Analysis Reports</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,12 +19,26 @@
       background: #fff;
       border-bottom: 1px solid #e2e8f0;
       padding: 22px 40px;
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
     }
-    header h1 { font-size: 20px; font-weight: 700; color: #047857; }
-    header span { font-size: 13px; color: #94a3b8; }
+    header h1 { font-size: 20px; font-weight: 700; color: #047857; margin-bottom: 10px; }
+    header .prepared-for {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 3px;
+    }
+    header .client-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    header .client-role {
+      font-size: 12px;
+      color: #047857;
+      margin-top: 2px;
+    }
 
     /* ── main ── */
     main {
@@ -70,9 +84,21 @@
       font-size: 20px;
     }
 
+    .card-num {
+      font-size: 11px; font-weight: 700;
+      color: #047857;
+      background: #f0fdf4;
+      border: 1px solid #a7f3d0;
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      align-self: center;
+    }
     .card-body { flex: 1; min-width: 0; }
     .card-title { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
-    .card-desc  { font-size: 13px; color: #64748b; line-height: 1.5; }
+    .card-desc  { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 6px; }
+    .card-date  { font-size: 11px; color: #94a3b8; }
 
     .card-meta {
       font-size: 11px; color: #94a3b8;
@@ -110,8 +136,10 @@
 <body>
 
 <header>
-  <h1>TCGA Analysis Reports</h1>
-  <span>Christophe Tav, PhD</span>
+  <h1>Analysis reports</h1>
+  <div class="prepared-for">Prepared for</div>
+  <div class="client-name">Sofiane Y. Mersaoui, PhD</div>
+  <div class="client-role">Coordinateur scientifique en hémato-oncologie (HEJ)</div>
 </header>
 
 <main>
@@ -120,18 +148,13 @@
 
     <!-- ── DDR vs MSI ───────────────────────────────────────────────────── -->
     <a class="card" href="reports/ddr-vs-msi/">
-      <div class="card-icon">🧬</div>
+      <div class="card-num">01</div>
       <div class="card-body">
         <div class="card-title">DDR gene expression vs MSI status</div>
         <div class="card-desc">
-          Interactive volcano plots and gene profiles across TCGA cancer types.
-          Wilcoxon rank-sum tests comparing MSI-H vs MSS tumor expression
-          for the full Wood Laboratory DNA damage repair gene panel.
+          DDR gene expression across TCGA cancer types stratified by MSI status. Interactive volcano plots and gene profiles.
         </div>
-      </div>
-      <div class="card-meta">
-        <div class="tag">TCGA</div><br>
-        Pan-cancer
+        <div class="card-date">February 2026</div>
       </div>
       <span class="arrow">›</span>
     </a>
