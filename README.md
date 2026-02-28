@@ -1,4 +1,4 @@
-# TCGA Analysis Reports
+# Test: Interactive analysis reports
 
 Password-protected multi-report site deployed on GitHub Pages via [StatiCrypt](https://github.com/robinmoisson/staticrypt).
 
@@ -12,12 +12,6 @@ Password-protected multi-report site deployed on GitHub Pages via [StatiCrypt](h
 chmod +x deploy.sh    # first time only
 
 ./deploy.sh <report-slug> /path/to/report.html
-```
-
-**Example — DDR vs MSI:**
-```bash
-./deploy.sh ddr-vs-msi \
-  /Users/chris/Desktop/20260118_SYM_project/scripts/explore_TCGA_cancer_vs_MSI/20260227_DDR_vs_MSI_status_TCGA.html
 ```
 
 The script will:
