@@ -1,34 +1,56 @@
 #!/usr/bin/env bash
 # =============================================================================
-# deploy.sh — Encrypt & deploy the DDR vs MSI HTML explorer to GitHub Pages
+# deploy.sh — Encrypt & deploy to GitHub Pages
 #
 # Usage:
-#   ./deploy.sh /path/to/20260227_DDR_vs_MSI_status_TCGA.html
+#   ./deploy.sh <report-slug> /path/to/report.html
 #
-# What it does:
-#   1. Encrypts the HTML with staticrypt (AES-256, password never stored)
-#   2. Writes the result as index.html in this repo
-#   3. Commits and pushes to GitHub Pages (main branch, root)
+# Examples:
+#   ./deploy.sh ddr-vs-msi /path/.../20260227_DDR_vs_MSI_status_TCGA.html
+#   ./deploy.sh mmr-expr   /path/.../another_report.html
+#
+# The script always re-encrypts the landing page (index.html) AND the
+# specified report (reports/<slug>/index.html) with the same password
+# and salt, so the "Remember me" feature works across all pages.
 #
 # First-time setup (one-off):
 #   chmod +x deploy.sh
-#   Go to GitHub → repo → Settings → Pages → Branch: main / folder: / (root)
+#   GitHub → repo → Settings → Pages → Branch: main / folder: / (root)
 # =============================================================================
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-HTML_SRC="${1:-}"
+SALT_FILE="$REPO_DIR/.staticrypt-salt"
+SRC_INDEX="$REPO_DIR/_src/index.html"
+
+SLUG="${1:-}"
+HTML_SRC="${2:-}"
 
 # ── Argument check ────────────────────────────────────────────────────────────
-if [[ -z "$HTML_SRC" ]]; then
-  echo "Usage: ./deploy.sh /path/to/20260227_DDR_vs_MSI_status_TCGA.html"
+if [[ -z "$SLUG" || -z "$HTML_SRC" ]]; then
+  echo "Usage: ./deploy.sh <report-slug> /path/to/report.html"
+  echo ""
+  echo "Example:"
+  echo "  ./deploy.sh ddr-vs-msi /path/to/20260227_DDR_vs_MSI_status_TCGA.html"
   exit 1
 fi
 
 if [[ ! -f "$HTML_SRC" ]]; then
-  echo "Error: file not found: $HTML_SRC"
+  echo "Error: report file not found: $HTML_SRC"
   exit 1
 fi
+
+if [[ ! -f "$SRC_INDEX" ]]; then
+  echo "Error: landing page source not found: $SRC_INDEX"
+  exit 1
+fi
+
+if [[ ! -f "$SALT_FILE" ]]; then
+  echo "Error: salt file not found: $SALT_FILE"
+  exit 1
+fi
+
+SALT=$(cat "$SALT_FILE")
 
 # ── Password prompt (not echoed, never stored) ────────────────────────────────
 echo ""
@@ -47,34 +69,50 @@ if [[ ${#PASSWORD} -lt 6 ]]; then
   exit 1
 fi
 
-# ── Encrypt with staticrypt ───────────────────────────────────────────────────
-# staticrypt v3 names the output file after the input file, so we copy the
-# source to a temp file called "index.html" → output will be $REPO_DIR/index.html
-echo "Encrypting..."
-TMP_DIR=$(mktemp -d)
-cp "$HTML_SRC" "$TMP_DIR/index.html"
+# ── Helper: encrypt one HTML file ────────────────────────────────────────────
+# Usage: encrypt_to <source.html> <output_dir>
+# staticrypt v3 names the output after the input, so we stage via a temp
+# file called "index.html" to always produce <output_dir>/index.html
+encrypt_to() {
+  local src="$1"
+  local out_dir="$2"
+  local tmp
+  tmp=$(mktemp -d)
+  cp "$src" "$tmp/index.html"
+  mkdir -p "$out_dir"
+  npx --yes staticrypt "$tmp/index.html" \
+    --password "$PASSWORD" \
+    --salt     "$SALT" \
+    -d         "$out_dir" \
+    --short \
+    --remember 7 \
+    --template-color-primary   "#047857" \
+    --template-color-secondary "#f0fdf4" \
+    --template-button "Unlock"
+  rm -rf "$tmp"
+}
 
-npx --yes staticrypt "$TMP_DIR/index.html" \
-  --password "$PASSWORD" \
-  -d "$REPO_DIR" \
-  --short \
-  --template-color-primary  "#047857" \
-  --template-color-secondary "#f0fdf4" \
-  --template-title "DDR vs MSI – TCGA Explorer" \
-  --template-instructions "Enter the password to access the explorer." \
-  --template-button "Unlock"
+# ── Encrypt landing page → index.html ────────────────────────────────────────
+echo ""
+echo "Encrypting landing page..."
+encrypt_to "$SRC_INDEX" "$REPO_DIR"
+echo "✓  index.html"
 
-rm -rf "$TMP_DIR"
+# ── Encrypt report → reports/<slug>/index.html ───────────────────────────────
+REPORT_DIR="$REPO_DIR/reports/$SLUG"
+echo "Encrypting report '$SLUG'..."
+encrypt_to "$HTML_SRC" "$REPORT_DIR"
+echo "✓  reports/$SLUG/index.html"
+
 unset PASSWORD PASSWORD2
-echo "✓  index.html generated in $REPO_DIR"
 
 # ── Commit & push ─────────────────────────────────────────────────────────────
 cd "$REPO_DIR"
-git add index.html
-git diff --cached --quiet && echo "No changes to commit." && exit 0
+git add index.html "reports/$SLUG/index.html"
+git diff --cached --quiet && echo "" && echo "No changes to commit." && exit 0
 
 STAMP=$(date '+%Y-%m-%d %H:%M')
-git commit -m "Deploy: DDR vs MSI explorer ($STAMP)"
+git commit -m "Deploy: $SLUG ($STAMP)"
 git push origin main
 
 echo ""
