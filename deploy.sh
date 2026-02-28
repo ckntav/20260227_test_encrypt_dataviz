@@ -48,12 +48,15 @@ if [[ ${#PASSWORD} -lt 6 ]]; then
 fi
 
 # ── Encrypt with staticrypt ───────────────────────────────────────────────────
-cd "$REPO_DIR"
+# staticrypt v3 names the output file after the input file, so we copy the
+# source to a temp file called "index.html" → output will be $REPO_DIR/index.html
 echo "Encrypting..."
+TMP_DIR=$(mktemp -d)
+cp "$HTML_SRC" "$TMP_DIR/index.html"
 
-npx --yes staticrypt "$HTML_SRC" \
+npx --yes staticrypt "$TMP_DIR/index.html" \
   --password "$PASSWORD" \
-  --output "$REPO_DIR/index.html" \
+  -d "$REPO_DIR" \
   --short \
   --template-color-primary  "#047857" \
   --template-color-secondary "#f0fdf4" \
@@ -61,10 +64,12 @@ npx --yes staticrypt "$HTML_SRC" \
   --template-instructions "Enter the password to access the explorer." \
   --template-button "Unlock"
 
+rm -rf "$TMP_DIR"
 unset PASSWORD PASSWORD2
 echo "✓  index.html generated in $REPO_DIR"
 
 # ── Commit & push ─────────────────────────────────────────────────────────────
+cd "$REPO_DIR"
 git add index.html
 git diff --cached --quiet && echo "No changes to commit." && exit 0
 
