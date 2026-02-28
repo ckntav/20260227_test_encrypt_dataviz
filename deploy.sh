@@ -53,7 +53,8 @@ echo "Encrypting..."
 
 npx --yes staticrypt "$HTML_SRC" \
   --password "$PASSWORD" \
-  --output index.html \
+  --output "$REPO_DIR/index.html" \
+  --short \
   --template-color-primary  "#047857" \
   --template-color-secondary "#f0fdf4" \
   --template-title "DDR vs MSI – TCGA Explorer" \
@@ -61,7 +62,7 @@ npx --yes staticrypt "$HTML_SRC" \
   --template-button "Unlock"
 
 unset PASSWORD PASSWORD2
-echo "✓  index.html generated"
+echo "✓  index.html generated in $REPO_DIR"
 
 # ── Commit & push ─────────────────────────────────────────────────────────────
 git add index.html
