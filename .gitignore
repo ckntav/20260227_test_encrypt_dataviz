@@ -1,0 +1,4 @@
+node_modules/
+.staticrypt/
+*.html
+!index.html
